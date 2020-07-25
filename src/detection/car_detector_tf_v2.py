@@ -9,11 +9,13 @@ import cv2
 import tensorflow as tf
 from src.detection.yolov3 import yolov3
 
+tf.compat.v1.disable_eager_execution()
+
 
 class CarDetectorTFV2(object):
     def __init__(self):
-        tf.reset_default_graph()
-        self.session = tf.Session()
+        tf.compat.v1.reset_default_graph()
+        self.session = tf.compat.v1.Session()
         self.batch_size = 1
         self.max_output_size = 10
         self.iou_threshold = 0.5
@@ -23,9 +25,9 @@ class CarDetectorTFV2(object):
                                     confidence_threshold=self.confidence_threshold)
         self.class_names = self.model.class_names
         self.model_size = self.model.model_size
-        self.inputs = tf.placeholder(tf.float32, [self.batch_size, self.model_size[0], self.model_size[1], 3])
+        self.inputs = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.model_size[0], self.model_size[1], 3])
         self.run_inference = self.model(self.inputs, training=False)
-        self.model_vars = tf.global_variables(scope='yolo_v3_model')
+        self.model_vars = tf.compat.v1.global_variables(scope='yolo_v3_model')
         self.assign_ops = yolov3.load_weights(self.model_vars, self.model.weights_path)
         self.session.run(self.assign_ops)
 
@@ -60,9 +62,11 @@ if __name__ == '__main__':
     detector = CarDetectorTFV2()
     video_filename = './yolov3/videos/0002.avi'
     vc = cv2.VideoCapture()
-    vc.open(video_filename)
+    # vc.open(video_filename)
+    vc.open(0)
     # skip to frames of interest
-    SKIP_FRAMES = 400
+    SKIP_FRAMES = 0
+
     CONFIDENCE_THRESHOLD = 0.80
     print("skipping first {} frames...".format(SKIP_FRAMES))
     for _ in range(SKIP_FRAMES):
@@ -81,7 +85,7 @@ if __name__ == '__main__':
                 cv2.rectangle(img, (x1, y1), (x2, y2), color, thickness=2)
                 text = '{} {:.1f}%'.format(class_name,
                                            confidence * 100)
-                cv2.putText(img, text, (x1, y1-5), 1, 1.5, color, 2)
+                cv2.putText(img, text, (x1, y1 - 5), 1, 1.5, color, 2)
         cv2.imshow('img', img)
         key = cv2.waitKey(1)
         if key & 0xFF == 27 or key == ord('q'):
