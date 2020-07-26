@@ -141,3 +141,4 @@ cython_debug/
 data/*
 data.zip
 yolov3.weights
+.idea/
